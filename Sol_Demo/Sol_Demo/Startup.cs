@@ -29,7 +29,7 @@ namespace Sol_Demo
 
             services.AddTransient<IMongoDbClientDbProvider, MongoDbClientDbProvider>((leServiceProvider) =>
             {
-                string connectionString = "mongodb+srv://Kishor:Shree@mongodbcluster-htypx.azure.mongodb.net/test?retryWrites=true&w=majority";
+                string connectionString = "mongodb+srv://Kishor:YourPassword@mongodbcluster-htypx.azure.mongodb.net/test?retryWrites=true&w=majority";
                 string database = "Db";
                 return new MongoDbClientDbProvider(connectionString, database);
             });

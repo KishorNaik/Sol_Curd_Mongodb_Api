@@ -15,28 +15,34 @@ namespace Sol_Demo.Repository
         Task<dynamic> DeleteUsersAsync(UsersModel usersModel);
 
         Task<IEnumerable<UsersModel>> GetUsersListAsync();
+
+        Task<IEnumerable<UsersModel>> SearchUsers(UsersModel usersModel);
+
+        Task<IEnumerable<UsersModel>> GetUserJoinListAsync();
     }
 
     public class UsersRepository : IUsersRepository
     {
-        private readonly IMongoDbClientDbProvider mongoDbClientDbProvider=null;
+      
         private readonly IMongoDatabase mongoDatabase = null;
 
         public UsersRepository(IMongoDbClientDbProvider mongoDbClientDbProvider)
         {
-            this.mongoDbClientDbProvider = mongoDbClientDbProvider;
-            this.mongoDatabase = this.mongoDbClientDbProvider.GetConnectionWithDatabase;
+            this.mongoDatabase = mongoDbClientDbProvider.GetConnectionWithDatabase;
         }
 
         async Task<dynamic> IUsersRepository.AddUsersAsync(UsersModel usersModel)
         {
             try
             {
-               
-                await 
+
+                await
                     mongoDatabase
                     ?.GetCollection<UsersModel>("UserCollection")
                     ?.InsertOneAsync(usersModel);
+
+                // get Identity Value
+                string id = usersModel?.Id;
 
                 return true;
             }
@@ -63,6 +69,42 @@ namespace Sol_Demo.Repository
             }
         }
 
+        Task<IEnumerable<UsersModel>> IUsersRepository.GetUserJoinListAsync()
+        {
+            try
+            {
+                var userCollectionData = mongoDatabase.GetCollection<UsersModel>("UserCollection");
+                var userLoginCollectionData = mongoDatabase.GetCollection<UserLoginModel>("UseLoginCollection");
+
+                var joinData =
+                            userCollectionData.AsQueryable()
+                            ?.Join<UsersModel, UserLoginModel, String, UsersModel>(
+                                    userLoginCollectionData.AsQueryable(),
+                                    (leUserCollectionObj) => leUserCollectionObj.Id,
+                                    (leUserLoginCollectionObj) => leUserLoginCollectionObj.UserId,
+                                    (leUserCollectionObj, leUserLoginCollectionObj) => new UsersModel()
+                                    {
+                                        Id = leUserCollectionObj.Id,
+                                        FirstName = leUserCollectionObj.FirstName,
+                                        LastName = leUserCollectionObj.LastName,
+                                        Age = leUserCollectionObj.Age,
+                                        UserLoginModel = new UserLoginModel()
+                                        {
+                                            Id=leUserLoginCollectionObj.Id,
+                                            UserName = leUserLoginCollectionObj.UserName,
+                                            Password = leUserLoginCollectionObj.Password
+                                        }
+                                    }
+                                    )
+                                ?.ToList();
+                return Task.FromResult<IEnumerable<UsersModel>>(joinData);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         async Task<IEnumerable<UsersModel>> IUsersRepository.GetUsersListAsync()
         {
            try
@@ -75,6 +117,25 @@ namespace Sol_Demo.Repository
                     ?.ToListAsync();
                 
                         
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        async Task<IEnumerable<UsersModel>> IUsersRepository.SearchUsers(UsersModel usersModel)
+        {
+            try
+            {
+                var data =
+                    await
+                    mongoDatabase
+                    ?.GetCollection<UsersModel>("UserCollection")
+                    ?.Find((leFilter) => leFilter.FirstName == usersModel.FirstName)
+                    ?.ToListAsync();
+
+                return data;    
             }
             catch
             {

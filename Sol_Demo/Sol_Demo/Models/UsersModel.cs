@@ -18,5 +18,8 @@ namespace Sol_Demo.Models
         public String LastName { get; set; }
 
         public int Age { get; set; }
+
+        [BsonIgnoreIfNull]
+        public UserLoginModel UserLoginModel { get; set; }
     }
 }

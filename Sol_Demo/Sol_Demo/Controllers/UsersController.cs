@@ -114,5 +114,47 @@ namespace Sol_Demo.Controllers
                 throw;
             }
         }
+
+        [HttpPost("search")]
+        public async Task<IActionResult> SearchUserAsync([FromBody] UsersModel usersModel)
+        {
+            try
+            {
+                if (usersModel == null) return base.BadRequest();
+                else
+                {
+                    var data =
+                        await
+                            usersRepository
+                            ?.SearchUsers(usersModel);
+
+                    return base.Ok((Object)data);
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        [HttpPost("joinusers")]
+        public async Task<IActionResult> GetUserListJoinAsync()
+        {
+            try
+            {
+                
+                    var data =
+                        await
+                            usersRepository
+                            ?.GetUserJoinListAsync();
+
+                    return base.Ok((Object)data);
+                
+            }
+            catch
+            {
+                throw;
+            }
+        }
     }
 }
